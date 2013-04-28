@@ -62,16 +62,19 @@ task3 str = do
       (code, encoded) = encodeFile str :: (Huffman Char, [Bool])
       (Just (code', str')) = decodeFile encoded :: Maybe (Huffman Char, [Char])
 
-task4 intsect cnt str = do
+task4 intsect withMem cnt str = do
   putStrLn $ "Probability of error when using code of fixed length N (in groups of " ++ show cnt ++ "):"
-  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, errProb (smartSplit intsect str cnt) n)) [0..10])
+  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, ep n)) [0..10])
+    where
+      ep n = if withMem then errProb (smartSplit intsect str cnt) n 1 else errProb str n cnt
 
 help progName =
   putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [intersect] [all] [analyze] [entropy] [huffman]\n\n"
       ++ "  --help       print this help\n"
       ++ "  --verbose    read oneline phrase from keyboard (other case read stdin up to eof)\n"
       ++ "  --count N    group symbols into groups of N (in 'analyze' and 'error'); default 1\n"
-      ++ "  --intersect  allow intersections when grouping symbols\n\n"
+      ++ "  --intersect  allow intersections when grouping symbols ('analyze', 'entropy', 'error')\n\n"
+      ++ "  --mem        assume source having memory ('error')\n\n"
       ++ "  all          all of tasks described below (like --count 1 --verbose analyze entropy huffman error)\n"
       ++ "  analyze      quantity, probability and information quantity of each symbol of the phrase\n"
       ++ "  entropy      entropy of the phrase (conditional and in groups)\n"
@@ -98,6 +101,7 @@ main =
 process args = do
   cnt <- return $ (readOpt "--count") args 1
   intsect <- return $ "--intersect" `elem` args
+  withMem <- return $ "--mem" `elem` args
   if "--help" `elem` args || args == [] || isNothing cnt
   then do
     progName <- getProgName
@@ -126,7 +130,7 @@ process args = do
       return ()
     if "error" `elem` args || "all" `elem` args
     then do
-      task4 intsect (fromJust cnt) str
+      task4 withMem intsect (fromJust cnt) str
     else do
       return ()
     if "--verbose" `elem` args || "all" `elem` args
