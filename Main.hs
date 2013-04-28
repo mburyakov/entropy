@@ -62,25 +62,28 @@ task3 str = do
       (code, encoded) = encodeFile str :: (Huffman Char, [Bool])
       (Just (code', str')) = decodeFile encoded :: Maybe (Huffman Char, [Char])
 
-task4 intsect cnt rows str = do
+task4 intsect withMem cnt rows str = do
   putStrLn $ "Probability of error when using code of fixed length N (in groups of " ++ show cnt ++ "):"
-  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, errProb (smartSplit intsect str cnt) n)) $ take rows [0..])
+  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, ep n)) $ take rows [0..])
+    where
+      ep n = if withMem then errProb (smartSplit intsect str cnt) n 1 else errProb str n cnt
 
 help progName =
-  putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [--rows N] [intersect] [all] [analyze] [entropy] [huffman]\n\n"
+  putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [--rows N] [--intersect] [--mem] [all] [analyze] [entropy] [huffman]\n\n"
       ++ "OPTIONS\n\n"
       ++ "  --help       print this help\n"
       ++ "  --verbose    read oneline phrase from keyboard (other case read stdin up to eof)\n"
       ++ "  --count N    group symbols into groups of N (in 'analyze' and 'error'); default 1\n"
       ++ "  --rows N     calculate and print N rows in table ('entropy', 'error'); default 10\n"
-      ++ "  --intersect  allow intersections when grouping symbols\n\n"
+      ++ "  --intersect  allow intersections when grouping symbols ('analyze', 'entropy', 'error')\n\n"
+      ++ "  --mem        assume source having memory ('error')\n\n"
       ++ "  all          all of tasks described below (like --count 1 --verbose analyze entropy huffman error)\n"
       ++ "  analyze      quantity, probability and information quantity of each symbol of the phrase\n"
       ++ "  entropy      entropy of the phrase (conditional and in groups)\n"
       ++ "  huffman      encode phrase with universal Huffman code\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
-      ++ "entropy v.5\n\n"
+      ++ "entropy v.6\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
 
@@ -105,6 +108,7 @@ process args = do
   cnt <- return $ (readOpt "--count") args 1
   rows <- return $ (readOpt "--rows") args 10
   intsect <- return $ checkOpt "--intersect" args
+  withMem <- return $ checkOpt "--mem" args
   if "--help" `elem` args || args == [] || isNothing cnt || isNothing rows
   then do
     progName <- getProgName
@@ -133,7 +137,7 @@ process args = do
       return ()
     if "error" `elem` args || "all" `elem` args
     then do
-      task4 intsect (fromJust cnt) (fromJust rows) str
+      task4 intsect withMem (fromJust cnt) (fromJust rows) str
     else do
       return ()
     if "--verbose" `elem` args || "all" `elem` args
