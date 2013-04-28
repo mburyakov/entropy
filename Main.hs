@@ -41,9 +41,9 @@ task1 intsect cnt str = do
       g ((a,b),(c,d),(e,f)) | a==c && a==e = (a,b,d,f)
       str' = smartSplit intsect str cnt
 
-task2 intsect str = do
+task2 intsect rows str = do
   putStrLn $ "Entropy of symbols in groups of n:"
-  printTable2 ("n","Hn(X)","H(X|.)") (map (\n -> (n, entropyN intsect str n, entropyCondN str n)) [1..10])
+  printTable2 ("n","Hn(X)","H(X|.)") (map (\n -> (n, entropyN intsect str n, entropyCondN str n)) $ take rows [1..])
 
 task3 str = do
   putStrLn $ "Source string: " ++ show str
@@ -62,34 +62,37 @@ task3 str = do
       (code, encoded) = encodeFile str :: (Huffman Char, [Bool])
       (Just (code', str')) = decodeFile encoded :: Maybe (Huffman Char, [Char])
 
-task4 intsect withMem cnt str = do
+task4 intsect cnt rows str = do
   putStrLn $ "Probability of error when using code of fixed length N (in groups of " ++ show cnt ++ "):"
-  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, ep n)) [0..10])
-    where
-      ep n = if withMem then errProb (smartSplit intsect str cnt) n 1 else errProb str n cnt
+  printTable4 ("N","R","Perr") (map (\n -> (n, (fromInteger.toInteger)n/(fromInteger.toInteger)cnt, errProb (smartSplit intsect str cnt) n)) $ take rows [0..])
 
 help progName =
-  putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [intersect] [all] [analyze] [entropy] [huffman]\n\n"
+  putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [--rows N] [intersect] [all] [analyze] [entropy] [huffman]\n\n"
+      ++ "OPTIONS\n\n"
       ++ "  --help       print this help\n"
       ++ "  --verbose    read oneline phrase from keyboard (other case read stdin up to eof)\n"
       ++ "  --count N    group symbols into groups of N (in 'analyze' and 'error'); default 1\n"
-      ++ "  --intersect  allow intersections when grouping symbols ('analyze', 'entropy', 'error')\n\n"
-      ++ "  --mem        assume source having memory ('error')\n\n"
+      ++ "  --rows N     calculate and print N rows in table ('entropy', 'error'); default 10\n"
+      ++ "  --intersect  allow intersections when grouping symbols\n\n"
       ++ "  all          all of tasks described below (like --count 1 --verbose analyze entropy huffman error)\n"
       ++ "  analyze      quantity, probability and information quantity of each symbol of the phrase\n"
       ++ "  entropy      entropy of the phrase (conditional and in groups)\n"
       ++ "  huffman      encode phrase with universal Huffman code\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
+      ++ "entropy v.5\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
+
+checkOpt =
+  elem
 
 readOpt opt args def =
   if isJust pos_
   then do
     pos <- pos_
     ans <- if length args>pos+1 then Just $ args !! (pos+1) else Nothing
-    return $ read ans
+    return (read ans)
   else
     return def
     where
@@ -100,9 +103,9 @@ main =
 
 process args = do
   cnt <- return $ (readOpt "--count") args 1
-  intsect <- return $ "--intersect" `elem` args
-  withMem <- return $ "--mem" `elem` args
-  if "--help" `elem` args || args == [] || isNothing cnt
+  rows <- return $ (readOpt "--rows") args 10
+  intsect <- return $ checkOpt "--intersect" args
+  if "--help" `elem` args || args == [] || isNothing cnt || isNothing rows
   then do
     progName <- getProgName
     help progName
@@ -120,7 +123,7 @@ process args = do
       return ()
     if "entropy" `elem` args || "all" `elem` args
     then do
-      task2 intsect str
+      task2 intsect (fromJust rows) str
     else do
       return ()
     if "huffman" `elem` args || "all" `elem` args
@@ -130,7 +133,7 @@ process args = do
       return ()
     if "error" `elem` args || "all" `elem` args
     then do
-      task4 withMem intsect (fromJust cnt) str
+      task4 intsect (fromJust cnt) (fromJust rows) str
     else do
       return ()
     if "--verbose" `elem` args || "all" `elem` args
