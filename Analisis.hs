@@ -28,15 +28,25 @@ entropy' prob =
 
 entropy str =
   (entropy' . freq . count) str
-  
+
 content str =
   (content' . freq . count) str
 
 ngrams str n =
   [take n $ drop i str | i <- [0..length str - n]]
 
-entropyN str n =
-  (entropy $ ngrams str n) / fromIntegral n
+smartSplit intsect =
+  if intsect then ngrams else split
+  
+split str n =
+  if length str>0
+  then
+    take n str : split (drop n str) n
+  else
+    []
+
+entropyN intsect str n =
+  (entropy $ (smartSplit intsect) str n) / fromIntegral n
 
 entropyCond' prob =
   - (mapSum $ Map.mapWithKey (\k p -> p * (logBase 2 (mapLookupSure k cond))) prob)
