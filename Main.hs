@@ -103,16 +103,16 @@ testStreamCode code str = do
 testUniHuffman str = do
   Just str == liftM snd decoded
     where
-      (code, encoded) = encodeFile str :: (Huffman Char, [Bool])
-      decoded = decodeFile encoded :: Maybe (Huffman Char, [Char])
+      (code, encoded) = encodeFile str :: (Huffman Word8, [Bool])
+      decoded = decodeFile encoded :: Maybe (Huffman Word8, [Word8])
 
 testCodes str =
-     testStreamCode lzw str
+     testStreamCode lzw (convertToAscii str)
   && testStreamCode huffman str
   && testStreamCode shannon str
-  && testUniHuffman str
+  && testUniHuffman (convertToAscii str)
     where
-      lzw = build str :: LZW Char
+      lzw = build (convertToAscii str) :: LZW Word8
       shannon = build str :: Shannon Char
       huffman = build str :: Huffman Char
 
@@ -151,7 +151,7 @@ help progName = do
       ++ "  testcodes    test all build-in codes\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
-      ++ "entropy v.7.2\n\n"
+      ++ "entropy v.7.4\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
   putStrLn "Press <Enter>."
@@ -185,7 +185,7 @@ process args = do
     progName <- getProgName
     help progName
   else do
-    str <- {-- liftM convertToAscii $ --} if "--verbose" `elem` args || "all" `elem` args
+    str <- if "--verbose" `elem` args || "all" `elem` args
     then do
       putStrLn "Enter your text:"
       getLine
