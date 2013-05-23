@@ -6,6 +6,7 @@ import Text.Printf
 import Data.List
 import Data.Maybe
 import Control.Monad
+import Data.Char
 
 import Analisis
 import Code
@@ -125,6 +126,9 @@ task4 intsect withMem cnt rows str = do
     where
       ep n = if withMem then errProb (smartSplit intsect str cnt) n 1 else errProb str n cnt
 
+convertToAscii str =
+  map (\c -> if ord c > 255 then chr (128 + ord c `mod` 128) else c) str
+
 help progName = do
   putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [--rows N] [--intersect] [--mem] [all] [analyze] [entropy] [huffman] [unihuffman] [shannon] [error] [lzw] [testcodes]\n\n"
       ++ "OPTIONS\n\n"
@@ -144,7 +148,7 @@ help progName = do
       ++ "  testcodes    test all build-in codes\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
-      ++ "entropy v.7\n\n"
+      ++ "entropy v.7.1\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
   putStrLn "Press <Enter>."
@@ -178,7 +182,7 @@ process args = do
     progName <- getProgName
     help progName
   else do
-    str <- if "--verbose" `elem` args || "all" `elem` args
+    str <- liftM convertToAscii $ if "--verbose" `elem` args || "all" `elem` args
     then do
       putStrLn "Enter your text:"
       getLine
