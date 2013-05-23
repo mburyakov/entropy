@@ -148,7 +148,7 @@ help progName = do
       ++ "  testcodes    test all build-in codes\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
-      ++ "entropy v.7.1\n\n"
+      ++ "entropy v.7.2\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
   putStrLn "Press <Enter>."

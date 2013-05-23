@@ -28,7 +28,7 @@ buildLZW opts =
       n = length lst
 
 addLZW next code@(LZW opts n dict revDict buf _) =
-  LZW opts (n+1) (Map.insert (next:buf) n dict) (Map.insert n (next:buf) revDict) [next] buf
+  LZW opts (n+1) (Map.insert (next: reverse buf) n dict) (Map.insert n (next:reverse buf) revDict) [next] buf
 
 stepLZW next (LZW opts n dict revDict buf lastBuf) =
   LZW opts n dict revDict (next:buf) lastBuf
