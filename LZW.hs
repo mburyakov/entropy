@@ -2,7 +2,6 @@ module LZW where
 
 import qualified Data.Map as Map
 import Data.List
-import qualified Debug.Trace
 
 import Code
 
@@ -18,11 +17,11 @@ lzwBitSize (LZWBounded l)     n = min (bitS (n-1)) l
 
 data LZW a = LZW {options :: LZWOptions, counter :: Int, dictionary :: Map.Map [a] Int, reverseDict :: Map.Map Int [a], buffer :: [a], lastBuffer :: [a]}
 
-buildLZW :: (Bounded a, Enum a, Enum' a, Ord a) => LZWOptions -> LZW a
+buildLZW :: (Bounded a, Enum a, Ord a) => LZWOptions -> LZW a
 buildLZW opts =
   LZW opts n (Map.fromList dict) (Map.fromList revDict) [] []
     where
-      lst  = map (:[]) $ enumFromTo minBound' maxBound'
+      lst  = map (:[]) $ enumFromTo minBound maxBound
       dict = zip lst [0..]
       revDict = zip [0..] lst
       n = length lst
@@ -67,5 +66,3 @@ instance StreamCode LZW where
 instance Buildable LZW where
   build str =
     buildLZW (LZWGrowing)
-
-trace x = Debug.Trace.trace (show x) x

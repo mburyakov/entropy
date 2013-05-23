@@ -7,6 +7,7 @@ import Data.List
 import Data.Maybe
 import Control.Monad
 import Data.Char
+import Data.Word
 
 import Analisis
 import Code
@@ -20,7 +21,7 @@ printTable1 (h1, h2, h3, h4) table = do
   putStrLn                    "┌───────┬────────┬──────┬──────┐"
   printf                      "│   %2s  │%7s │ %4s │ %4s │\n" h1 h2 h3 h4
   putStrLn                    "├───────┼────────┼──────┼──────┤"
-  mapM_ (\(c,i,p,f) -> printf "│%7s│ %6d │%5.2f │%5.2f │\n" ("'"++c++"'") i p f) table
+  mapM_ (\(c,i,p,f) -> printf "│%7s│ %6d │%5.2f │%5.2f │\n" (show c) i p f) table
   putStrLn                    "└───────┴────────┴──────┴──────┘"
   putStrLn ""
 
@@ -50,17 +51,15 @@ task2 intsect rows str = do
   printTable2 ("n","Hn(X)","H(X|.)") (map (\n -> (n, entropyN intsect str n, entropyCondN str n)) $ take rows [1..])
 
 printCode str encoded decoded = do
-  putStrLn $ "Source string: " ++ show str
+  putStrLn $ "Source string: \"" ++ str ++ "\""
   putStrLn $ "Length = " ++ show (length str) ++ " symbols."
   if length (nub str) < 2 then
     putStrLn "Error: string should contain at least two distinct symbols."
   else do
     putStrLn $ "Encoded string: " ++ show (map boolToChar encoded)
     putStrLn $ "Length = " ++ show (length encoded) ++ " bits."
-    putStrLn $ "Decoded string: " ++ show decoded
+    putStrLn $ "Decoded string: \"" ++ decoded ++ "\""
     putStrLn $ "Compression coefficient: " ++ show ((fromInteger.toInteger) (length str) / (fromInteger.toInteger) (length encoded) * 8) ++ "\n"
-
-
 
 taskHuffman str = do
   putStrLn "Demonstrating Huffman code:"
@@ -87,10 +86,11 @@ taskShannon str = do
 
 taskLZW str = do
   putStrLn "Demonstrating LZW code:"
-  printCode str encoded decoded
+  printCode str encoded $ convertFromAscii decoded
     where
-      code = build str :: LZW Char
-      encoded      = encodeStr code str
+      str' = convertToAscii str
+      code = build str' :: LZW Word8
+      encoded      = encodeStr code str'
       Just decoded = decodeStr code encoded
 
 
@@ -127,7 +127,10 @@ task4 intsect withMem cnt rows str = do
       ep n = if withMem then errProb (smartSplit intsect str cnt) n 1 else errProb str n cnt
 
 convertToAscii str =
-  map (\c -> if ord c > 255 then chr (128 + ord c `mod` 128) else c) str
+  map (fromIntegral . (\c -> if ord c > 255 then 128 + ord c `mod` 128 else ord c)) str :: [Word8]
+
+convertFromAscii str =
+  map (chr . (\c -> if c > 127 then 7*128 + fromIntegral c else fromIntegral c)) str
 
 help progName = do
   putStrLn $ "usage:\n\n" ++ progName ++ " [--help] [--verbose] [--count N] [--rows N] [--intersect] [--mem] [all] [analyze] [entropy] [huffman] [unihuffman] [shannon] [error] [lzw] [testcodes]\n\n"
@@ -182,7 +185,7 @@ process args = do
     progName <- getProgName
     help progName
   else do
-    str <- liftM convertToAscii $ if "--verbose" `elem` args || "all" `elem` args
+    str <- {-- liftM convertToAscii $ --} if "--verbose" `elem` args || "all" `elem` args
     then do
       putStrLn "Enter your text:"
       getLine

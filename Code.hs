@@ -50,14 +50,6 @@ instance Bits Bool where
   shift x _ = x
   rotate x _ = x
 
-class Enum' a where
-  minBound' :: a
-  maxBound' :: a
-
-instance Enum' Char where
-  minBound' = '\NUL'
-  maxBound' = '\255'
-
 class StreamCode a where
 
   canEncode :: Ord b => a b -> b -> Bool
@@ -99,10 +91,10 @@ class Serializable a where
   deserialize :: (Bits b, Ord b) => [Bool] -> Maybe (a b, [Bool])
 
 class Buildable a where
-  build :: (Bounded b, Enum b, Enum' b, Ord b) => [b] -> a b
+  build :: (Bounded b, Enum b, Ord b) => [b] -> a b
 
 class (StreamCode a, Serializable a, Buildable a) => FileCode a where
-  encodeFile :: (Bits b, Enum b, Enum' b, Bounded b, Ord b) => [b] -> (a b, [Bool])
+  encodeFile :: (Bits b, Enum b, Bounded b, Ord b) => [b] -> (a b, [Bool])
   encodeFile lst =
     (code, serCode ++ encodedStr)
       where
