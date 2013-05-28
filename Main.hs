@@ -21,7 +21,7 @@ printTable1 (h1, h2, h3, h4) table = do
   putStrLn                    "┌───────┬────────┬──────┬──────┐"
   printf                      "│   %2s  │%7s │ %4s │ %4s │\n" h1 h2 h3 h4
   putStrLn                    "├───────┼────────┼──────┼──────┤"
-  mapM_ (\(c,i,p,f) -> printf "│%7s│ %6d │%5.2f │%5.2f │\n" (show c) i p f) table
+  mapM_ (\(c,i,p,f) -> printf "│'%5s'│ %6d │%5.2f │%5.2f │\n" c i p f) table
   putStrLn                    "└───────┴────────┴──────┴──────┘"
   putStrLn ""
 
@@ -117,8 +117,11 @@ testCodes str =
       huffman = build str :: Huffman Char
 
 taskTestCodes str = do
-  putStrLn "testing Huffman, universal Huffman, Shannon and LZW codes:"
-  putStrLn $ if testCodes str then "OK, test passed." else "Test failed. Please, report a bug."
+  if length (nub str) < 2 then
+    putStrLn "Error: string should contain at least two distinct symbols."
+  else do
+    putStrLn "testing Huffman, universal Huffman, Shannon and LZW codes:"
+    putStrLn $ if testCodes str then "OK, test passed." else "Test failed. Please, report a bug."
 
 task4 intsect withMem cnt rows str = do
   putStrLn $ "Probability of error when using code of fixed length N (in groups of " ++ show cnt ++ "):"
@@ -151,7 +154,7 @@ help progName = do
       ++ "  testcodes    test all build-in codes\n"
       ++ "  error        calculate error probability when encoding in groups of '--count' with code with fixed various length\n\n"
       ++ "If you are stuck try 'all'\n\n"
-      ++ "entropy v.7.4\n\n"
+      ++ "entropy v.7.6\n\n"
       ++ "You can free distibute this software, but I will be grateful if you let me know about any bugs or your usage experience.\n"
       ++ "Copyright: Mihail A. Buryakov <mburyakov@dcn.ftk.spbstu.ru>"
   putStrLn "Press <Enter>."
